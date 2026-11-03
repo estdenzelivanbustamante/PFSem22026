@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Licorería Don Charles | Selección Premium</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: { DEFAULT: '#C5A059', light: '#DFBD78', dark: '#8C6F36' },
+                        charcoal: { 900: '#111111', 800: '#1A1A1A', 700: '#2A2A2A' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-nav { background: rgba(17, 17, 17, 0.95); backdrop-filter: blur(10px); }
+        .hero-bg {
+            background-image: linear-gradient(to bottom, rgba(17, 17, 17, 0.4), rgba(17, 17, 17, 1)), url('https://images.unsplash.com/photo-1569529465841-dfecdab7503b?q=80&w=2000&auto=format&fit=crop');
+            background-size: cover; background-position: center;
+        }
+        .bottle-img-wrapper::after {
+            content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+            height: 30%; background: linear-gradient(to top, #151515, transparent); pointer-events: none;
+        }
+        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .toast-enter { animation: slideUp 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="bg-charcoal-900 text-gray-300 font-sans antialiased selection:bg-gold selection:text-charcoal-900">
+
+    <nav class="glass-nav fixed w-full z-50 border-b border-charcoal-700 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Menú móvil -->
+                <div class="flex items-center md:hidden">
+                    <button id="mobile-menu-btn" class="text-gray-300 hover:text-gold transition focus:outline-none">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                </div>
+                
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center justify-center md:justify-start w-full md:w-auto">
+                    <a href="#" class="font-serif text-2xl tracking-widest text-white uppercase flex flex-col items-center md:items-start">
+                        Don Charles <span class="text-[0.6rem] tracking-[0.3em] text-gold mt-1">Licorería Premium</span>
+                    </a>
+                </div>
+
+                <!-- Enlaces Desktop -->
+                <div class="hidden md:flex space-x-8 items-center">
+                    <a href="#" class="text-sm tracking-wide text-white hover:text-gold transition">Inicio</a>
+                    <a href="#catalogo" class="text-sm tracking-wide text-gray-400 hover:text-white transition">Catálogo</a>
+                    <a href="#categorias" class="text-sm tracking-wide text-gray-400 hover:text-white transition">Categorías</a>
+                </div>
+
+                <!-- Botones de Sesión Desktop (Tienen ID para modificarlos con JS) -->
+                <div id="auth-desktop" class="hidden md:flex items-center space-x-4 absolute right-4 md:relative md:right-0">
+                    <!-- Se llenará con JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Menú Móvil Desplegable -->
+        <div id="mobile-menu" class="hidden md:hidden bg-charcoal-800 border-b border-charcoal-700">
+            <div class="px-2 pt-2 pb-3 space-y-1">
+                <a href="#" class="block px-3 py-2 text-base text-white hover:text-gold">Inicio</a>
+                <a href="#catalogo" class="block px-3 py-2 text-base text-gray-400 hover:text-gold">Catálogo</a>
+            </div>
+            <!-- Botones de Sesión Móvil (Tienen ID para modificarlos con JS) -->
+            <div id="auth-mobile" class="border-t border-charcoal-700 mt-2 pt-4 pb-2">
+                <!-- Se llenará con JavaScript -->
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="hero-bg h-screen flex items-center justify-center text-center px-4 pt-20">
+            <div class="max-w-3xl mx-auto opacity-0 animate-[slideUp_1s_ease-out_forwards]">
+                <p class="text-gold tracking-[0.2em] text-sm uppercase mb-4">El arte del buen beber</p>
+                <h1 class="font-serif text-5xl md:text-7xl text-white mb-6 leading-tight">La Excelencia en <br> Cada Copa</h1>
+                <p class="text-lg text-gray-400 mb-10 font-light max-w-2xl mx-auto">
+                    Descubre una selección inigualable de licores de todo el mundo.
+                </p>
+                <a href="#catalogo" class="bg-gold hover:bg-gold-light text-charcoal-900 px-8 py-3 tracking-wide uppercase text-sm transition duration-300 font-bold">
+                    Explorar Catálogo
+                </a>
+            </div>
+        </section>
+
+        <!-- Catálogo de Licores -->
+        <section id="catalogo" class="py-24 bg-charcoal-800">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="mb-12">
+                    <p class="text-gold tracking-[0.2em] text-xs uppercase mb-2">Selección del Sommelier</p>
+                    <h2 class="font-serif text-3xl md:text-4xl text-white">Catálogo Exclusivo</h2>
+                </div>
+
+                <div id="productos-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div class="col-span-full text-center py-12">
+                        <i class="fas fa-circle-notch fa-spin text-3xl text-gold mb-4"></i>
+                        <p class="text-gray-400 font-light">Cargando colección...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Panel del Carrito (Oculto por defecto) -->
+    <div id="cart-drawer" class="fixed inset-y-0 right-0 max-w-sm w-full bg-charcoal-800 border-l border-charcoal-700 shadow-2xl transform translate-x-full transition-transform duration-300 z-50 flex flex-col">
+        <div class="flex justify-between items-center p-6 border-b border-charcoal-700">
+            <h2 class="font-serif text-2xl text-white">Tu Carrito</h2>
+            <button onclick="toggleCarrito()" class="text-gray-400 hover:text-white transition">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        
+        <div id="cart-items" class="flex-1 overflow-y-auto p-6 space-y-4">
+            <p class="text-gray-500 text-center mt-10 text-sm">Tu copa está vacía.</p>
+        </div>
+
+        <div class="p-6 border-t border-charcoal-700 bg-charcoal-900">
+            <div class="flex justify-between text-white font-bold text-xl mb-4">
+                <span>Total:</span>
+                <span id="cart-total">$0.00</span>
+            </div>
+            <button onclick="confirmarPedido()" class="w-full bg-gold hover:bg-gold-light text-charcoal-900 py-3.5 text-sm font-bold uppercase tracking-wider rounded-sm transition">
+                Confirmar Pedido
+            </button>
+        </div>
+    </div>
+    
+    <!-- Fondo oscuro al abrir carrito -->
+    <div id="cart-overlay" onclick="toggleCarrito()" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-40"></div>
+
+    <!-- Contenedor para Notificaciones Toast -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2"></div>
+
+    <script>
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const toastContainer = document.getElementById('toast-container');
+        const productosContainer = document.getElementById('productos-container');
+        const authDesktop = document.getElementById('auth-desktop');
+        const authMobile = document.getElementById('auth-mobile');
+
+        // Revisar si el usuario está logueado
+        const usuarioLogueado = JSON.parse(sessionStorage.getItem('usuarioLogueado'));
+
+        // Menú móvil
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+                const icon = mobileMenuBtn.querySelector('i');
+                icon.classList.toggle('fa-bars');
+                icon.classList.toggle('fa-times');
+            });
+        }
+
+        // Configurar Navbar según la sesión
+        function configurarNavbar() {
+            if (usuarioLogueado) {
+                // Verificamos si es Admin (Rol 1) para agregar el botón del panel
+                let botonDesktop = '';
+                let botonMobile = '';
+                
+                if (usuarioLogueado.ID_Rol === 1) {
+                    botonDesktop = `<a href="admin.html" class="text-sm font-semibold tracking-wide text-gold hover:text-white transition mr-6 border-b border-transparent hover:border-gold"><i class="fas fa-shield-alt mr-1"></i> Panel Admin</a>`;
+                    botonMobile = `<a href="admin.html" class="block px-3 py-2 text-base font-medium text-gold hover:text-white"><i class="fas fa-shield-alt mr-1"></i> Panel Admin</a>`;
+                } else if (usuarioLogueado.ID_Rol === 2) {
+                    botonDesktop = `<a href="trabajador.html" class="text-sm font-semibold tracking-wide text-gold hover:text-white transition mr-6 border-b border-transparent hover:border-gold"><i class="fas fa-cash-register mr-1"></i> Panel Trabajo</a>`;
+                    botonMobile = `<a href="trabajador.html" class="block px-3 py-2 text-base font-medium text-gold hover:text-white"><i class="fas fa-cash-register mr-1"></i> Panel Trabajo</a>`;
+                }
+                // Usuario CON sesión
+                authDesktop.innerHTML = `
+                    ${botonDesktop}
+                    <button onclick="toggleCarrito()" class="text-white hover:text-gold transition mr-6 relative">
+                        <i class="fas fa-shopping-cart text-lg"></i>
+                        <span id="cart-count" class="absolute -top-2 -right-3 bg-gold text-charcoal-900 text-[10px] font-bold px-1.5 py-0.5 rounded-full hidden">0</span>
+                    </button>
+                    <span class="text-sm text-gray-400 mr-4"><i class="fas fa-user-circle mr-1"></i> Mi Cuenta</span>
+                    <button onclick="cerrarSesion()" class="border border-gold text-gold hover:bg-gold hover:text-charcoal-900 px-4 py-2 text-xs tracking-wide uppercase transition duration-300 font-bold rounded-sm">Cerrar Sesión</button>
+                `;
+                authMobile.innerHTML = `
+                    ${botonMobile}
+                    <span class="block px-3 py-2 text-base text-gray-400"><i class="fas fa-user-circle mr-1"></i> Mi Cuenta</span>
+                    <button onclick="cerrarSesion()" class="block w-full text-left px-3 py-2 text-base font-medium text-red-400 hover:text-red-300">Cerrar Sesión</button>
+                `;
+            } else {
+                // Usuario SIN sesión
+                authDesktop.innerHTML = `
+                    <a href="login.html" class="text-sm font-semibold tracking-wide text-white hover:text-gold transition">Iniciar Sesión</a>
+                    <a href="registro.html" class="bg-gold hover:bg-gold-light text-charcoal-900 px-4 py-2 text-xs tracking-wide uppercase transition duration-300 font-bold rounded-sm">Registrarse</a>
+                `;
+                authMobile.innerHTML = `
+                    <a href="login.html" class="block px-3 py-2 text-base font-medium text-white hover:text-gold">Iniciar Sesión</a>
+                    <a href="registro.html" class="block px-3 py-2 text-base font-medium text-gold hover:text-white">Registrarse</a>
+                `;
+            }
+        }
+
+        // Función para cerrar sesión
+        function cerrarSesion() {
+            sessionStorage.removeItem('usuarioLogueado');
+            window.location.reload(); // Recarga la página
+        }
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'bg-charcoal-800 border border-gold text-white px-6 py-4 shadow-lg rounded-sm flex items-center gap-3 toast-enter max-w-sm';
+            toast.innerHTML = `<i class="fas fa-info-circle text-gold"></i><p class="text-sm font-light">${message}</p>`;
+            toastContainer.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(100%)';
+                toast.style.transition = 'all 0.3s ease-in';
+                setTimeout(() => { if (toastContainer.contains(toast)) toastContainer.removeChild(toast); }, 300);
+            }, 3000);
+        }
+
+        function mostrarMensajeSesion() {
+            showToast('Debes iniciar sesión para añadir productos al carrito.');
+        }
+
+        function añadirAlCarrito() {
+            showToast('¡Producto añadido al carrito con éxito!');
+        }
+
+        // Obtener licores de Node.js + SQL Server
+        async function cargarLicoresDesdeBD() {
+            try {
+                const respuesta = await fetch('http://localhost:3000/api/licores');
+                if (!respuesta.ok) throw new Error('Respuesta del servidor no válida');
+                const licores = await respuesta.json();
+                
+                // ASIGNACIÓN CLAVE: Guardamos los licores en memoria para el carrito
+                licoresDisponibles = licores;
+                
+                productosContainer.innerHTML = ''; 
+
+                licores.forEach(licor => {
+                    const precioFormateado = parseFloat(licor.Precio).toFixed(2);
+                    const imagenUrl = licor.ImagenUrl || 'https://images.unsplash.com/photo-1527281400683-1aae777175f8?q=80&w=800';
+
+                    // CORRECCIÓN CLAVE: añadirAlCarrito(${licor.IdLicor})
+                    const botonAccion = usuarioLogueado 
+                        ? `<button onclick="añadirAlCarrito(${licor.IdLicor})" class="w-full bg-gold hover:bg-gold-light text-charcoal-900 py-2.5 text-xs uppercase tracking-wider transition duration-300 font-bold rounded-sm">Añadir al carrito</button>`
+                        : `<button onclick="mostrarMensajeSesion()" class="w-full bg-transparent border border-gray-600 text-gray-400 hover:border-gold hover:text-gold py-2.5 text-xs uppercase tracking-wider transition duration-300 font-bold rounded-sm">Inicia sesión para comprar</button>`;
+
+                    const tarjetaHtml = `
+                        <div class="group bg-charcoal-900 border border-charcoal-700 p-4 transition duration-300 hover:border-gold flex flex-col justify-between rounded-sm">
+                            <div>
+                                <div class="relative h-64 mb-4 flex items-center justify-center overflow-hidden bg-[#151515] bottle-img-wrapper rounded-sm">
+                                    <img src="${imagenUrl}" alt="${licor.Nombre}" class="h-full object-contain group-hover:scale-105 transition duration-500 opacity-90" onerror="this.src='https://images.unsplash.com/photo-1527281400683-1aae777175f8?q=80&w=800'">
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-gold text-xs uppercase tracking-widest font-semibold mb-1">${licor.Categoria}</p>
+                                    <h3 class="font-serif text-lg text-white mb-2 line-clamp-2">${licor.Nombre}</h3>
+                                </div>
+                            </div>
+                            <div class="mt-auto pt-2">
+                                <p class="text-white text-xl text-center font-serif mb-3">$${precioFormateado}</p>
+                                ${botonAccion}
+                            </div>
+                        </div>
+                    `;
+                    productosContainer.insertAdjacentHTML('beforeend', tarjetaHtml);
+                });
+            } catch (error) {
+                console.error('Error al cargar el catálogo:', error);
+                productosContainer.innerHTML = `<p class="col-span-full text-center text-red-400 py-12">Error al conectar con el servidor.</p>`;
+            }
+        }
+
+        let carritoWeb = [];
+        let licoresDisponibles = []; // Para tener referencia al stock y precios
+
+        function toggleCarrito() {
+            const drawer = document.getElementById('cart-drawer');
+            const overlay = document.getElementById('cart-overlay');
+            drawer.classList.toggle('translate-x-full');
+            overlay.classList.toggle('hidden');
+        }
+
+        function añadirAlCarrito(id) {
+            const producto = licoresDisponibles.find(p => p.IdLicor === id);
+            if (!producto) return;
+
+            const itemExistente = carritoWeb.find(i => i.IdLicor === id);
+            if (itemExistente) {
+                if (itemExistente.cantidad < producto.Stock) {
+                    itemExistente.cantidad++;
+                    showToast('Cantidad aumentada en el carrito.');
+                } else {
+                    showToast('Stock máximo alcanzado para este producto.', true);
+                }
+            } else {
+                if (producto.Stock > 0) {
+                    carritoWeb.push({ ...producto, cantidad: 1 });
+                    showToast('¡Añadido al carrito con éxito!');
+                } else {
+                    showToast('Producto sin stock.', true);
+                }
+            }
+            renderizarCarritoWeb();
+        }
+
+        function modificarCantidad(id, cambio) {
+            const index = carritoWeb.findIndex(i => i.IdLicor === id);
+            if (index > -1) {
+                carritoWeb[index].cantidad += cambio;
+                if (carritoWeb[index].cantidad <= 0) carritoWeb.splice(index, 1);
+                renderizarCarritoWeb();
+            }
+        }
+
+        function renderizarCarritoWeb() {
+            const contenedor = document.getElementById('cart-items');
+            const totalEtiq = document.getElementById('cart-total');
+            const contador = document.getElementById('cart-count');
+            
+            let totalItems = 0;
+            let totalDinero = 0;
+
+            if (carritoWeb.length === 0) {
+                contenedor.innerHTML = '<p class="text-gray-500 text-center mt-10 text-sm">Tu copa está vacía.</p>';
+                totalEtiq.innerText = '$0.00';
+                contador.classList.add('hidden');
+                return;
+            }
+
+            let html = '';
+            carritoWeb.forEach(item => {
+                const subtotal = item.Precio * item.cantidad;
+                totalDinero += subtotal;
+                totalItems += item.cantidad;
+                
+                html += `
+                    <div class="flex gap-4 items-center bg-charcoal-900 p-3 border border-charcoal-700 rounded-sm">
+                        <img src="${item.ImagenUrl || 'https://images.unsplash.com/photo-1527281400683-1aae777175f8?q=80&w=200'}" alt="${item.Nombre}" class="w-12 h-12 object-contain bg-[#151515] rounded-sm">
+                        <div class="flex-1">
+                            <p class="text-white text-sm line-clamp-1">${item.Nombre}</p>
+                            <p class="text-gold text-xs font-bold">$${parseFloat(item.Precio).toFixed(2)}</p>
+                        </div>
+                        <div class="flex flex-col items-center gap-1">
+                            <button onclick="modificarCantidad(${item.IdLicor}, 1)" class="text-gray-400 hover:text-gold text-xs"><i class="fas fa-chevron-up"></i></button>
+                            <span class="text-white text-xs">${item.cantidad}</span>
+                            <button onclick="modificarCantidad(${item.IdLicor}, -1)" class="text-gray-400 hover:text-red-400 text-xs"><i class="fas fa-chevron-down"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            contenedor.innerHTML = html;
+            totalEtiq.innerText = '$' + totalDinero.toFixed(2);
+            
+            contador.innerText = totalItems;
+            contador.classList.remove('hidden');
+        }
+
+        async function confirmarPedido() {
+            if (carritoWeb.length === 0) return showToast('El carrito está vacío.', true);
+            
+            const usuarioSesion = JSON.parse(sessionStorage.getItem('usuarioLogueado'));
+            if (!usuarioSesion) return showToast('Debes iniciar sesión para pedir.', true);
+
+            const totalPedido = carritoWeb.reduce((sum, item) => sum + (item.Precio * item.cantidad), 0);
+            const idUsuario = usuarioSesion.ID_Usuario || usuarioSesion.IdUsuario;
+
+            try {
+                const respuesta = await fetch('http://localhost:3000/api/pedidos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        idCliente: idUsuario, 
+                        total: totalPedido, 
+                        carrito: carritoWeb 
+                    })
+                });
+
+                if (respuesta.ok) {
+                    // Limpiar carrito temporal y redirigir
+                    carritoWeb = [];
+                    window.location.href = 'pedido_estado.html';
+                } else {
+                    showToast('Error al confirmar el pedido.', true);
+                }
+            } catch (error) {
+                showToast('Error de conexión.', true);
+            }
+        }
+        // Ejecutar al cargar la página
+        document.addEventListener('DOMContentLoaded', () => {
+            configurarNavbar();
+            cargarLicoresDesdeBD();
+        });
+    </script>
+</body>
+</html>

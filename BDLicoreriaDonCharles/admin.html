@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administrador | Don Charles</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: { DEFAULT: '#C5A059', light: '#DFBD78', dark: '#8C6F36' },
+                        charcoal: { 900: '#111111', 800: '#1A1A1A', 700: '#2A2A2A' }
+                    }
+                }
+            }
+        }
+    </script>
+    <script>
+        // SEGURIDAD: Verificar inmediatamente si es administrador (Rol 1)
+        const usuarioSesion = JSON.parse(sessionStorage.getItem('usuarioLogueado'));
+        if (!usuarioSesion || usuarioSesion.ID_Rol !== 1) {
+            window.location.href = 'index.html'; // Expulsar si no es admin
+        }
+    </script>
+</head>
+<body class="bg-charcoal-900 text-gray-300 font-sans flex h-screen overflow-hidden">
+
+    <!-- Sidebar Lateral -->
+    <aside class="w-64 bg-charcoal-800 border-r border-charcoal-700 flex flex-col">
+        <div class="h-20 flex items-center justify-center border-b border-charcoal-700">
+            <h1 class="font-serif text-xl tracking-widest text-white uppercase text-center">
+                Admin <span class="block text-[0.6rem] tracking-[0.2em] text-gold mt-1">Don Charles</span>
+            </h1>
+        </div>
+        <nav class="flex-1 p-4 space-y-2">
+            <button onclick="cambiarPestana('productos')" id="btn-productos" class="w-full flex items-center gap-3 px-4 py-3 text-sm tracking-wide bg-gold text-charcoal-900 font-bold rounded-sm transition">
+                <i class="fas fa-wine-bottle w-5"></i> Gestión de Productos
+            </button>
+            <button onclick="cambiarPestana('usuarios')" id="btn-usuarios" class="w-full flex items-center gap-3 px-4 py-3 text-sm tracking-wide text-gray-400 hover:text-white hover:bg-charcoal-700 rounded-sm transition">
+                <i class="fas fa-users w-5"></i> Gestión de Usuarios
+            </button>
+            <button onclick="cambiarPestana('finanzas')" id="btn-finanzas" class="w-full flex items-center gap-3 px-4 py-3 text-sm tracking-wide text-gray-400 hover:text-white hover:bg-charcoal-700 rounded-sm transition">
+                <i class="fas fa-chart-line w-5"></i> Ganancias Semanales
+            </button>
+        </nav>
+        <div class="p-4 border-t border-charcoal-700">
+            <button onclick="cerrarSesionAdmin()" class="w-full flex items-center justify-center gap-2 border border-red-900 text-red-500 hover:bg-red-900 hover:text-white px-4 py-2 text-xs tracking-wide uppercase transition rounded-sm">
+                <i class="fas fa-sign-out-alt"></i> Salir al Inicio
+            </button>
+        </div>
+    </aside>
+
+    <!-- Contenido Principal -->
+    <main class="flex-1 overflow-y-auto bg-[#111]">
+        
+        <!-- PESTAÑA: PRODUCTOS -->
+        <section id="vista-productos" class="p-8 block">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="font-serif text-3xl text-white">Inventario de Licores</h2>
+                <button class="bg-gold hover:bg-gold-light text-charcoal-900 px-4 py-2 text-sm font-bold uppercase tracking-wider rounded-sm flex items-center gap-2">
+                    <i class="fas fa-plus"></i> Nuevo Producto
+                </button>
+            </div>
+            
+            <div class="bg-charcoal-800 border border-charcoal-700 rounded-sm overflow-hidden">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-charcoal-700/50 text-gray-400 uppercase text-xs tracking-wider">
+                        <tr>
+                            <th class="px-6 py-4">Producto</th>
+                            <th class="px-6 py-4">Categoría</th>
+                            <th class="px-6 py-4">Stock</th>
+                            <th class="px-6 py-4">Precio</th>
+                            <th class="px-6 py-4 text-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-charcoal-700" id="tabla-productos">
+                        <!-- Ejemplo visual -->
+                        <tr class="hover:bg-charcoal-700/30 transition">
+                            <td class="px-6 py-4 text-white">Whisky Blue Label</td>
+                            <td class="px-6 py-4 text-gold">Whisky</td>
+                            <td class="px-6 py-4">12 un.</td>
+                            <td class="px-6 py-4">$250.00</td>
+                            <td class="px-6 py-4 flex justify-end gap-2">
+                                <button title="Aumentar Stock" class="text-green-500 hover:text-green-400 p-2"><i class="fas fa-box-open"></i></button>
+                                <button title="Editar" class="text-blue-400 hover:text-blue-300 p-2"><i class="fas fa-edit"></i></button>
+                                <button title="Dar de Baja" class="text-red-500 hover:text-red-400 p-2"><i class="fas fa-trash-alt"></i></button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- PESTAÑA: USUARIOS -->
+        <section id="vista-usuarios" class="p-8 hidden">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="font-serif text-3xl text-white">Personal y Clientes</h2>
+                <button onclick="abrirModalUsuario()" class="bg-gold hover:bg-gold-light text-charcoal-900 px-4 py-2 text-sm font-bold uppercase tracking-wider rounded-sm flex items-center gap-2">
+                    <i class="fas fa-user-plus"></i> Registrar Usuario
+                </button>
+            </div>
+
+            <div class="bg-charcoal-800 border border-charcoal-700 rounded-sm overflow-hidden">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-charcoal-700/50 text-gray-400 uppercase text-xs tracking-wider">
+                        <tr>
+                            <th class="px-6 py-4">Correo</th>
+                            <th class="px-6 py-4">Rol</th>
+                            <th class="px-6 py-4">Estado</th>
+                            <th class="px-6 py-4 text-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-charcoal-700" id="tabla-usuarios">
+                        
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- PESTAÑA: FINANZAS -->
+        <section id="vista-finanzas" class="p-8 hidden">
+            <h2 class="font-serif text-3xl text-white mb-8">Reporte Financiero</h2>
+
+                <div class="mt-8 bg-charcoal-800 border border-charcoal-700 rounded-sm overflow-hidden">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-charcoal-700/50 text-gray-400 uppercase text-xs tracking-wider">
+                            <tr>
+                                <th class="px-6 py-4">Nº Venta</th>
+                                <th class="px-6 py-4">Fecha</th>
+                                <th class="px-6 py-4">Procesado por</th>
+                                <th class="px-6 py-4 text-right">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-charcoal-700" id="tabla-ventas">
+                        <!-- Las ventas se cargarán aquí con JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+        </section>
+
+    </main>
+
+    <script>
+        // Lógica para cambiar de pestañas en el panel
+        function cambiarPestana(pestana) {
+            // Ocultar todas las vistas
+            document.getElementById('vista-productos').classList.add('hidden');
+            document.getElementById('vista-usuarios').classList.add('hidden');
+            document.getElementById('vista-finanzas').classList.add('hidden');
+
+            // Resetear estilos de los botones
+            const botones = ['btn-productos', 'btn-usuarios', 'btn-finanzas'];
+            botones.forEach(id => {
+                const btn = document.getElementById(id);
+                btn.className = "w-full flex items-center gap-3 px-4 py-3 text-sm tracking-wide text-gray-400 hover:text-white hover:bg-charcoal-700 rounded-sm transition";
+            });
+
+            // Mostrar la vista seleccionada y activar su botón
+            document.getElementById(`vista-${pestana}`).classList.remove('hidden');
+            
+            const btnActivo = document.getElementById(`btn-${pestana}`);
+            btnActivo.className = "w-full flex items-center gap-3 px-4 py-3 text-sm tracking-wide bg-gold text-charcoal-900 font-bold rounded-sm transition";
+        }
+
+        // Función para salir del panel
+        function cerrarSesionAdmin() {
+            // No borramos el localStorage aquí porque solo sale al index, 
+            // a menos que quieras que cierre sesión por completo.
+            window.location.href = 'index.html';
+        }
+    </script>
+
+    <!-- Modal de Producto -->
+    <div id="modal-producto" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center z-50 overflow-y-auto pt-10 pb-10">
+        <div class="bg-charcoal-800 border border-charcoal-700 p-8 rounded-sm w-full max-w-2xl relative my-auto">
+            <button onclick="cerrarModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            <h3 id="modal-titulo" class="font-serif text-2xl text-white mb-6">Nuevo Producto</h3>
+            
+            <form id="form-producto" class="space-y-4">
+                <input type="hidden" id="prod-id">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="col-span-2 md:col-span-1">
+                        <label class="block text-xs uppercase text-gray-400 mb-1">Nombre</label>
+                        <input type="text" id="prod-nombre" required class="w-full bg-charcoal-900 border border-charcoal-700 text-white px-3 py-2 focus:border-gold outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase text-gray-400 mb-1">Categoría</label>
+                        <select id="prod-categoria" class="w-full bg-charcoal-900 border border-charcoal-700 text-white px-3 py-2 focus:border-gold outline-none">
+                            <option value="Whisky">Whisky</option>
+                            <option value="Vino">Vino</option>
+                            <option value="Ron">Ron</option>
+                            <option value="Tequila">Tequila</option>
+                            <option value="Vodka">Vodka</option>
+                            <option value="Ginebra">Ginebra</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase text-gray-400 mb-1">Precio ($)</label>
+                        <input type="number" step="0.01" id="prod-precio" required class="w-full bg-charcoal-900 border border-charcoal-700 text-white px-3 py-2 focus:border-gold outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase text-gray-400 mb-1">Stock Inicial</label>
+                        <input type="number" id="prod-stock" required class="w-full bg-charcoal-900 border border-charcoal-700 text-white px-3 py-2 focus:border-gold outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase text-gray-400 mb-1">Volumen (ml)</label>
+                        <input type="number" id="prod-volumen" required class="w-full bg-charcoal-900 border border-charcoal-700 text-white px-3 py-2 focus:border-gold outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase text-gray-400 mb-1">Grado Alcohólico (%)</label>
+                        <input type="number" step="0.01" id="prod-grado" required class="w-full bg-charcoal-900 border border-charcoal-700 text-white px-3 py-2 focus:border-gold outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs uppercase text-gray-400 mb-1">Descripción</label>
+                    <textarea id="prod-descripcion" rows="2" class="w-full bg-charcoal-900 border border-charcoal-700 text-white px-3 py-2 focus:border-gold outline-none"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs uppercase text-gray-400 mb-1">URL de Imagen</label>
+                    <input type="text" id="prod-img" class="w-full bg-charcoal-900 border border-charcoal-700 text-white px-3 py-2 focus:border-gold outline-none">
+                </div>
+                <button type="submit" class="w-full bg-gold hover:bg-gold-light text-charcoal-900 py-3 mt-4 text-sm font-bold uppercase tracking-wider rounded-sm">
+                    Guardar Producto
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Usuario -->
+    <div id="modal-usuario" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center z-50 overflow-y-auto pt-10 pb-10">
+        <div class="bg-charcoal-800 border border-charcoal-700 p-8 rounded-sm w-full max-w-md relative my-auto">
+            <button onclick="cerrarModalUsuario()" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            <h3 id="modal-user-titulo" class="font-serif text-2xl text-white mb-6">Nuevo Usuario</h3>
+            
+            <form id="form-usuario" class="space-y-4">
+                <input type="hidden" id="user-id">
+                
+                <div>
+                    <label class="block text-xs uppercase text-gray-400 mb-1">Nombre Completo</label>
+                    <input type="text" id="user-nombre" required class="w-full bg-charcoal-900 border border-charcoal-700 text-white px-3 py-2 focus:border-gold outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase text-gray-400 mb-1">Correo Electrónico</label>
+                    <input type="email" id="user-correo" required class="w-full bg-charcoal-900 border border-charcoal-700 text-white px-3 py-2 focus:border-gold outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase text-gray-400 mb-1">Rol del Usuario</label>
+                    <select id="user-rol" class="w-full bg-charcoal-900 border border-charcoal-700 text-white px-3 py-2 focus:border-gold outline-none">
+                        <option value="5">Cliente</option>
+                        <option value="4">Delivery</option>
+                        <option value="3">Trabajador</option>
+                        <option value="2">Gerente</option>
+                        <option value="1">Administrador</option>
+                    </select>
+                </div>
+                <div id="div-password">
+                    <label class="block text-xs uppercase text-gray-400 mb-1">Contraseña temporal</label>
+                    <input type="password" id="user-password" class="w-full bg-charcoal-900 border border-charcoal-700 text-white px-3 py-2 focus:border-gold outline-none">
+                </div>
+                
+                <button type="submit" class="w-full bg-gold hover:bg-gold-light text-charcoal-900 py-3 mt-4 text-sm font-bold uppercase tracking-wider rounded-sm">
+                    Guardar Usuario
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. FUNCIONES DEL MENU
+        // ==========================================
+        function cambiarPestana(pestana) {
+            document.getElementById('vista-productos').classList.add('hidden');
+            document.getElementById('vista-usuarios').classList.add('hidden');
+            document.getElementById('vista-finanzas').classList.add('hidden');
+
+            const botones = ['btn-productos', 'btn-usuarios', 'btn-finanzas'];
+            botones.forEach(id => {
+                document.getElementById(id).className = "w-full flex items-center gap-3 px-4 py-3 text-sm tracking-wide text-gray-400 hover:text-white hover:bg-charcoal-700 rounded-sm transition";
+            });
+
+            document.getElementById(`vista-${pestana}`).classList.remove('hidden');
+            document.getElementById(`btn-${pestana}`).className = "w-full flex items-center gap-3 px-4 py-3 text-sm tracking-wide bg-gold text-charcoal-900 font-bold rounded-sm transition";
+        }
+
+        function cerrarSesionAdmin() {
+            window.location.href = 'index.html';
+        }
+        // ==========================================
+        // 2. LOGICA DE LICORES
+        // ==========================================
+        let productosGlobales = []; // Guardamos los datos para acceder fácilmente al editar
+
+        async function cargarProductosAdmin() {
+            try {
+                const res = await fetch('http://localhost:3000/api/licores');
+                productosGlobales = await res.json();
+                const tabla = document.getElementById('tabla-productos');
+                tabla.innerHTML = '';
+                
+                productosGlobales.forEach(p => {
+                    tabla.innerHTML += `
+                        <tr class="hover:bg-charcoal-700/30 transition">
+                            <td class="px-6 py-4 text-white">${p.Nombre}</td>
+                            <td class="px-6 py-4 text-gold">${p.Categoria}</td>
+                            <td class="px-6 py-4">${p.Stock} un.</td>
+                            <td class="px-6 py-4">$${parseFloat(p.Precio).toFixed(2)}</td>
+                            <td class="px-6 py-4 flex justify-end gap-3">
+                                <button onclick="abrirModal(${p.IdLicor})" title="Editar" class="text-blue-400 hover:text-blue-300"><i class="fas fa-edit text-lg"></i></button>
+                                <button onclick="eliminarProducto(${p.IdLicor})" title="Dar de Baja" class="text-red-500 hover:text-red-400"><i class="fas fa-trash-alt text-lg"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (err) { console.error(err); }
+        }
+
+        const modal = document.getElementById('modal-producto');
+        const formProducto = document.getElementById('form-producto');
+
+        function abrirModal(id = null) {
+            document.getElementById('modal-titulo').innerText = id ? 'Editar Producto' : 'Nuevo Producto';
+            
+            if (id) {
+                const p = productosGlobales.find(prod => prod.IdLicor === id);
+                document.getElementById('prod-id').value = p.IdLicor;
+                document.getElementById('prod-nombre').value = p.Nombre;
+                document.getElementById('prod-categoria').value = p.Categoria;
+                document.getElementById('prod-precio').value = p.Precio;
+                document.getElementById('prod-stock').value = p.Stock;
+                document.getElementById('prod-volumen').value = p.Volumen_ml;
+                document.getElementById('prod-grado').value = p.GradoAlcoholico;
+                document.getElementById('prod-descripcion').value = p.Descripcion || '';
+                document.getElementById('prod-img').value = p.ImagenUrl || '';
+            } else {
+                formProducto.reset();
+                document.getElementById('prod-id').value = '';
+            }
+            
+            modal.classList.remove('hidden');
+        }
+
+        function cerrarModal() {
+            modal.classList.add('hidden');
+            formProducto.reset();
+        }
+
+        formProducto.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('prod-id').value;
+            const datos = {
+                nombre: document.getElementById('prod-nombre').value,
+                categoria: document.getElementById('prod-categoria').value,
+                precio: document.getElementById('prod-precio').value,
+                stock: document.getElementById('prod-stock').value,
+                volumen: document.getElementById('prod-volumen').value,
+                grado: document.getElementById('prod-grado').value,
+                descripcion: document.getElementById('prod-descripcion').value,
+                imagenUrl: document.getElementById('prod-img').value
+            };
+
+            const url = id ? `http://localhost:3000/api/admin/licores/${id}` : 'http://localhost:3000/api/admin/licores';
+            const metodo = id ? 'PUT' : 'POST';
+
+            await fetch(url, {
+                method: metodo,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(datos)
+            });
+            cerrarModal();
+            cargarProductosAdmin(); 
+        });
+
+        async function eliminarProducto(id) {
+            if (confirm('¿Estás seguro de dar de baja este producto?')) {
+                await fetch(`http://localhost:3000/api/admin/licores/${id}`, { method: 'DELETE' });
+                cargarProductosAdmin();
+            }
+        }
+
+        // ==========================================
+        // 3. LÓGICA DE USUARIOS (Clientes y Trabajadores)
+        // ==========================================
+        let usuariosGlobales = []; // Guarda los usuarios para editarlos fácilmente
+
+        async function cargarUsuariosAdmin() {
+            try {
+                const res = await fetch('http://localhost:3000/api/admin/usuarios');
+                
+                if (!res.ok) {
+                    throw new Error('Error en el servidor al traer los usuarios');
+                }
+
+                usuariosGlobales = await res.json();
+                console.log("Usuarios cargados desde la BD:", usuariosGlobales); // <- Esto te ayudará a ver qué trae la base de datos
+
+                const tabla = document.getElementById('tabla-usuarios');
+                tabla.innerHTML = ''; // Limpiamos la tabla antes de llenarla
+                
+                usuariosGlobales.forEach(u => {
+                    // Determinar el nombre y estilo del rol (asumiendo que tu columna se llama ID_Rol)
+                    const idRol = u.ID_Rol || u.IdRol || u.id_rol; // Cubrimos posibles nombres de la columna
+                    const nombreRol = idRol === 1 ? 'Administrador' : (idRol === 2 ? 'Trabajador' : 'Cliente');
+                    
+                    // Colores visuales para los badges según la imagen que me mostraste
+                    let badgeRol = '';
+                    if (idRol === 1) badgeRol = '<span class="px-2 py-1 bg-red-900/50 text-red-400 rounded-full text-xs">Admin</span>';
+                    else if (idRol === 2) badgeRol = '<span class="px-2 py-1 bg-purple-900/50 text-purple-400 rounded-full text-xs">Gerente</span>';
+                    else if (idRol === 3) badgeRol = '<span class="px-2 py-1 bg-gold/20 text-gold rounded-full text-xs">Trabajador</span>';
+                    else if (idRol === 4) badgeRol = '<span class="px-2 py-1 bg-blue-900/50 text-blue-400 rounded-full text-xs">Delivery</span>';
+                    else badgeRol = '<span class="px-2 py-1 bg-charcoal-700 text-gray-300 rounded-full text-xs">Cliente</span>';
+                    
+                    // Estado del usuario (Si no tienes la columna estado, por defecto dirá Activo)
+                    const estado = u.Estado || 'Activo';
+                    const colorEstado = estado === 'Activo' ? 'text-green-500' : 'text-red-500';
+
+                    // Usaremos el ID correcto (asumiendo que se llama IdUsuario, Id o ID_Usuario)
+                    const idUsuario = u.IdUsuario || u.Id || u.ID_Usuario;
+
+                    tabla.innerHTML += `
+                        <tr class="hover:bg-charcoal-700/30 transition border-b border-charcoal-700">
+                            <td class="px-6 py-4 text-white">${u.Correo}</td>
+                            <td class="px-6 py-4">${badgeRol}</td>
+                            <td class="px-6 py-4 ${colorEstado}">${estado}</td>
+                            <td class="px-6 py-4 text-right flex justify-end gap-2">
+                                <button onclick="abrirModalUsuario(${idUsuario})" title="Editar" class="text-blue-400 hover:text-blue-300 p-2 border border-blue-500 rounded-sm text-xs uppercase px-3">Editar</button>
+                                <button onclick="eliminarUsuario(${idUsuario})" title="Dar de Baja" class="text-red-500 hover:text-red-400 p-2 border border-red-500 rounded-sm text-xs uppercase px-3">Dar de baja</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (err) { 
+                console.error("Error al cargar usuarios:", err); 
+            }
+        }
+
+        const modalUsuario = document.getElementById('modal-usuario');
+        const formUsuario = document.getElementById('form-usuario');
+
+        function abrirModalUsuario(id = null) {
+            document.getElementById('modal-user-titulo').innerText = id ? 'Editar Usuario' : 'Nuevo Usuario';
+            const divPass = document.getElementById('div-password');
+            const passInput = document.getElementById('user-password');
+            
+            if (id) {
+                // Buscamos el usuario por su ID
+                const u = usuariosGlobales.find(user => (user.IdUsuario || user.Id) === id);
+                document.getElementById('user-id').value = id;
+                document.getElementById('user-nombre').value = u.Nombre || '';
+                document.getElementById('user-correo').value = u.Correo || '';
+                document.getElementById('user-rol').value = u.ID_Rol || u.IdRol || 3;
+                
+                divPass.classList.add('hidden'); // Ocultar contraseña al editar
+                passInput.removeAttribute('required');
+            } else {
+                formUsuario.reset();
+                document.getElementById('user-id').value = '';
+                divPass.classList.remove('hidden'); // Mostrar contraseña al crear
+                passInput.setAttribute('required', 'true');
+            }
+            modalUsuario.classList.remove('hidden');
+        }
+
+        function cerrarModalUsuario() {
+            modalUsuario.classList.add('hidden');
+            formUsuario.reset();
+        }
+
+        formUsuario.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('user-id').value;
+            const datos = {
+                nombre: document.getElementById('user-nombre').value,
+                correo: document.getElementById('user-correo').value,
+                idRol: document.getElementById('user-rol').value,
+                password: document.getElementById('user-password').value
+            };
+
+            const url = id ? `http://localhost:3000/api/admin/usuarios/${id}` : 'http://localhost:3000/api/admin/usuarios';
+            const metodo = id ? 'PUT' : 'POST';
+
+            try {
+                await fetch(url, { 
+                    method: metodo, 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify(datos) 
+                });
+                cerrarModalUsuario();
+                cargarUsuariosAdmin(); 
+            } catch (err) {
+                console.error("Error al guardar usuario:", err);
+            }
+        });
+
+        async function eliminarUsuario(id) {
+            if (confirm('¿Estás seguro de dar de baja a este usuario?')) {
+                try {
+                    await fetch(`http://localhost:3000/api/admin/usuarios/${id}`, { method: 'DELETE' });
+                    cargarUsuariosAdmin();
+                } catch (err) {
+                    console.error("Error al eliminar usuario:", err);
+                }
+            }
+        }
+
+        // ==========================================
+        // 4. LÓGICA DE FINANZAS (Ventas)
+        // ==========================================
+
+        async function cargarFinanzasAdmin() {
+            try {
+                const res = await fetch('http://localhost:3000/api/ventas');
+                if (!res.ok) throw new Error('Error al cargar el historial de ventas');
+                
+                const ventas = await res.json();
+                let totalGanancias = 0;
+                const tabla = document.getElementById('tabla-ventas');
+                tabla.innerHTML = '';
+
+                ventas.forEach(v => {
+                    totalGanancias += parseFloat(v.Total);
+                    const fecha = new Date(v.Fecha).toLocaleString('es-ES');
+                    
+                    tabla.innerHTML += `
+                        <tr class="hover:bg-charcoal-700/30 transition border-b border-charcoal-700">
+                            <td class="px-6 py-4 text-white">#${v.IdVenta}</td>
+                            <td class="px-6 py-4 text-gray-400">${fecha}</td>
+                            <td class="px-6 py-4 text-gold">${v.Trabajador}</td>
+                            <td class="px-6 py-4 text-white text-right font-bold">$${parseFloat(v.Total).toFixed(2)}</td>
+                        </tr>
+                    `;
+                });
+
+                // Actualizar el número grande en la tarjeta
+                document.getElementById('monto-semana').innerText = `$${totalGanancias.toFixed(2)}`;
+            } catch (err) {
+                console.error("Error al cargar finanzas:", err);
+            }
+        }
+
+        // ==========================================
+        // CARGA INICIAL
+        // ==========================================
+        // Esto asegura que ambas tablas se llenen al abrir el panel
+
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarProductosAdmin();
+            cargarUsuariosAdmin();
+            cargarFinanzasAdmin();
+        });
+
+    </script>
+</body>
+</html>

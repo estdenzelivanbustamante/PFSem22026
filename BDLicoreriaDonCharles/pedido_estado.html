@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estado del Pedido | Don Charles</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <script>
+        tailwind.config = { theme: { extend: { colors: { gold: { DEFAULT: '#C5A059' }, charcoal: { 900: '#111111', 800: '#1A1A1A', 700: '#2A2A2A' } } } } }
+    </script>
+    <script>
+        const usuarioSesion = JSON.parse(sessionStorage.getItem('usuarioLogueado'));
+        if (!usuarioSesion) window.location.href = 'login.html';
+    </script>
+</head>
+<body class="bg-charcoal-900 text-gray-300 font-sans flex items-center justify-center min-h-screen p-4">
+
+    <div class="bg-charcoal-800 border border-charcoal-700 p-8 rounded-sm shadow-2xl w-full max-w-lg relative">
+        <a href="index.html" class="absolute top-4 left-4 text-gray-400 hover:text-gold transition text-sm">
+            <i class="fas fa-arrow-left"></i> Volver a la tienda
+        </a>
+        
+        <div class="text-center mt-6 mb-8">
+            <h1 class="font-serif text-3xl text-white mb-2">Seguimiento de Pedido</h1>
+            <p class="text-gray-400 text-sm" id="pedido-info">Cargando información...</p>
+        </div>
+
+        <!-- Contenedor del Estado (Se llena con JS) -->
+        <div id="estado-container" class="space-y-6 relative pl-4 border-l-2 border-charcoal-700 ml-4">
+            <div class="text-center py-10"><i class="fas fa-spinner fa-spin text-3xl text-gold"></i></div>
+        </div>
+    </div>
+
+    <script>
+        const estados = [
+            "Alistando su pedido",
+            "Esperando repartidor",
+            "Su pedido fue recogido",
+            "Su pedido esta en camino",
+            "Su pedido esta en su locacion"
+        ];
+
+        async function consultarEstado() {
+            const idUsuario = usuarioSesion.ID_Usuario || usuarioSesion.IdUsuario;
+            try {
+                const res = await fetch(`http://localhost:3000/api/pedidos/cliente/${idUsuario}`);
+                if (!res.ok) throw new Error('No se encontró pedido');
+                
+                const pedido = await res.json();
+                document.getElementById('pedido-info').innerText = `Pedido #${pedido.IdPedido} - Total: $${parseFloat(pedido.Total).toFixed(2)}`;
+                
+                renderizarLineaTiempo(pedido.Estado, pedido.MotivoCancelacion);
+            } catch (err) {
+                document.getElementById('estado-container').innerHTML = `<p class="text-red-400 text-center py-4">No tienes pedidos activos en este momento.</p>`;
+            }
+        }
+
+        function renderizarLineaTiempo(estadoActual, motivo) {
+            const container = document.getElementById('estado-container');
+            
+            // Estado Cancelado
+            if (estadoActual.toLowerCase().includes('cancelado')) {
+                container.className = "mt-4 p-4 bg-red-900/20 border border-red-900 rounded-sm text-center";
+                container.innerHTML = `
+                    <i class="fas fa-times-circle text-4xl text-red-500 mb-3"></i>
+                    <h3 class="text-xl text-white font-bold mb-2">Pedido Cancelado</h3>
+                    <p class="text-sm text-red-400 mb-2">De momento se nos es imposible realizar su pedido.</p>
+                    <p class="text-xs text-gray-500 border-t border-red-900/50 pt-2 mt-2">Motivo: ${motivo || 'Problemas logísticos.'}</p>
+                `;
+                return;
+            }
+
+            // Flujo Normal
+            let html = '';
+            let indexActual = estados.indexOf(estadoActual);
+            // Si por alguna razón el texto varía un poco, forzamos al menos el primer paso
+            if (indexActual === -1) indexActual = 0; 
+
+            const iconos = ['fa-box-open', 'fa-hand-holding-box', 'fa-motorcycle', 'fa-map-marker-alt'];
+
+            estados.forEach((est, index) => {
+                const completado = index <= indexActual;
+                const actual = index === indexActual;
+                
+                const colorTexto = actual ? 'text-white font-bold' : (completado ? 'text-gray-300' : 'text-gray-600');
+                const colorIcono = completado ? 'text-gold' : 'text-charcoal-700';
+                const animacion = actual ? 'animate-pulse' : '';
+
+                html += `
+                    <div class="relative flex items-center gap-4 mb-8 last:mb-0">
+                        <!-- Punto indicador -->
+                        <div class="absolute -left-[23px] bg-charcoal-900 rounded-full border-2 ${completado ? 'border-gold' : 'border-charcoal-700'} p-1">
+                            <div class="w-2 h-2 rounded-full ${completado ? 'bg-gold' : 'bg-transparent'} ${animacion}"></div>
+                        </div>
+                        
+                        <div class="flex items-center justify-center w-10 h-10 rounded-sm bg-charcoal-900 border border-charcoal-700 ${colorIcono}">
+                            <i class="fas ${iconos[index]}"></i>
+                        </div>
+                        
+                        <div>
+                            <p class="${colorTexto} text-sm uppercase tracking-wider">${est}</p>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        async function cargarPedidosWeb() {
+    try {
+        const res = await fetch('http://localhost:3000/api/trabajador/pedidos');
+        const pedidos = await res.json();
+        const contenedor = document.getElementById('grid-pedidosweb');
+        
+        if (pedidos.length === 0) {
+            contenedor.innerHTML = '<p class="text-gray-400">No hay pedidos online pendientes de armar.</p>';
+            return;
+        }
+
+        let html = '';
+        pedidos.forEach(p => {
+            html += `
+                <div class="bg-charcoal-800 border border-charcoal-700 p-6 rounded-sm">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="text-white font-bold text-lg">Orden #${p.IdPedido}</h3>
+                            <p class="text-sm text-gray-400"><i class="fas fa-user text-gold mr-1"></i> ${p.Cliente}</p>
+                        </div>
+                        <span class="text-gold font-bold text-xl">$${parseFloat(p.Total).toFixed(2)}</span>
+                    </div>
+                    <p class="text-xs uppercase tracking-wider text-yellow-500 mb-4 animate-pulse"><i class="fas fa-box-open"></i> Pendiente de empaque</p>
+                    <button onclick="marcarPedidoListo(${p.IdPedido})" class="w-full bg-charcoal-900 border border-gold text-gold hover:bg-gold hover:text-charcoal-900 font-bold uppercase tracking-wider text-xs py-3 rounded-sm transition">
+                        Marcar Listo para Repartidor
+                    </button>
+                </div>
+            `;
+        });
+        contenedor.innerHTML = html;
+    } catch (err) { console.error(err); }
+}
+
+        async function marcarPedidoListo(idPedido) {
+            try {
+                await fetch(`http://localhost:3000/api/trabajador/pedido/${idPedido}`, { method: 'PUT' });
+                cargarPedidosWeb(); // Refrescar la vista
+            } catch (err) {
+                console.error('Error al actualizar:', err);
+            }
+        }
+
+        // Llama a cargarPedidosWeb() periódicamente para que el trabajador reciba notificaciones en tiempo real
+        setInterval(() => {
+            if(!document.getElementById('vista-pedidosweb').classList.contains('hidden')) {
+                cargarPedidosWeb();
+            }
+        }, 5000);
+
+        // Ejecutar inmediatamente y luego consultar cada 5 segundos
+        consultarEstado();
+        setInterval(consultarEstado, 5000); 
+    </script>
+</body>
+</html>

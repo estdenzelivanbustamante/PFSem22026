@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Trabajador | Don Charles</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: { extend: { colors: { gold: { DEFAULT: '#C5A059', light: '#DFBD78' }, charcoal: { 900: '#111111', 800: '#1A1A1A', 700: '#2A2A2A' } } } }
+        }
+    </script>
+    <script>
+        // SEGURIDAD: Verificar si es Trabajador (Rol 3 en la nueva estructura)
+        const usuarioSesion = JSON.parse(sessionStorage.getItem('usuarioLogueado'));
+        if (!usuarioSesion || usuarioSesion.ID_Rol !== 3) {
+            window.location.href = 'index.html';
+        }
+    </script>
+</head>
+<body class="bg-charcoal-900 text-gray-300 font-sans flex h-screen overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-charcoal-800 border-r border-charcoal-700 flex flex-col">
+        <div class="h-20 flex items-center justify-center border-b border-charcoal-700">
+            <h1 class="font-serif text-xl tracking-widest text-white uppercase text-center">
+                Staff <span class="block text-[0.6rem] tracking-[0.2em] text-gold mt-1">Don Charles</span>
+            </h1>
+        </div>
+        <nav class="flex-1 p-4 space-y-2">
+            <button onclick="cambiarPestana('pedidosweb')" id="btn-pedidosweb" class="w-full flex items-center gap-3 px-4 py-3 text-sm tracking-wide bg-gold text-charcoal-900 font-bold rounded-sm transition relative">
+                <i class="fas fa-globe w-5"></i> Pedidos Web
+            </button>
+            <button onclick="cambiarPestana('inventario')" id="btn-inventario" class="w-full flex items-center gap-3 px-4 py-3 text-sm tracking-wide text-gray-400 hover:text-white hover:bg-charcoal-700 rounded-sm transition">
+                <i class="fas fa-boxes w-5"></i> Ver Inventario
+            </button>
+        </nav>
+        <div class="p-4 border-t border-charcoal-700">
+            <button onclick="cerrarSesion()" class="w-full flex items-center justify-center gap-2 border border-red-900 text-red-500 hover:bg-red-900 hover:text-white px-4 py-2 text-xs tracking-wide uppercase transition rounded-sm">
+                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+            </button>
+        </div>
+    </aside>
+
+    <!-- Contenido -->
+    <main class="flex-1 overflow-y-auto bg-[#111] p-8">
+        
+        <!-- PESTAÑA: POS -->
+        <section id="vista-pos" class="block">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="font-serif text-3xl text-white">Punto de Venta</h2>
+                <!-- Buscador -->
+                <div class="relative w-72">
+                    <input type="text" id="buscador-pos" placeholder="Buscar licor..." class="w-full bg-charcoal-900 border border-charcoal-700 text-white px-4 py-2 pl-10 focus:border-gold outline-none rounded-sm transition text-sm">
+                    <i class="fas fa-search absolute left-3 top-2.5 text-gray-500"></i>
+                </div>
+            </div>
+            <div class="grid grid-cols-3 gap-6">
+                <!-- Catálogo rápido -->
+                <div class="col-span-2 bg-charcoal-800 border border-charcoal-700 rounded-sm p-4 h-[600px] overflow-y-auto" id="pos-productos">
+                    <p class="text-gray-400 text-center py-10"><i class="fas fa-spinner fa-spin"></i> Cargando productos...</p>
+                </div>
+                <!-- Carrito -->
+                <div class="bg-charcoal-800 border border-charcoal-700 rounded-sm p-4 flex flex-col h-[600px]">
+                    <h3 class="text-gold font-bold uppercase text-sm mb-4 border-b border-charcoal-700 pb-2">Ticket de Compra</h3>
+                    <div id="carrito-items" class="flex-1 overflow-y-auto space-y-3">
+                        <p class="text-xs text-gray-500 text-center mt-10">El carrito está vacío</p>
+                    </div>
+                    <div class="border-t border-charcoal-700 pt-4 mt-4">
+                    <div class="flex justify-between text-white font-bold text-xl mb-4">
+                        <span>Total:</span>
+                        <span id="carrito-total">$0.00</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="cancelarPedido()" class="w-1/3 bg-transparent border border-red-500 text-red-500 hover:bg-red-500 hover:text-white py-3 text-xs font-bold uppercase rounded-sm transition">
+                            Cancelar
+                        </button>
+                        <button onclick="procesarVenta()" class="w-2/3 bg-gold hover:bg-gold-light text-charcoal-900 py-3 text-sm font-bold uppercase rounded-sm transition">
+                            Procesar Venta
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PESTAÑA: INVENTARIO -->
+        <section id="vista-inventario" class="hidden">
+            <h2 class="font-serif text-3xl text-white mb-6">Consulta de Stock</h2>
+            <div class="bg-charcoal-800 border border-charcoal-700 rounded-sm overflow-hidden">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-charcoal-700/50 text-gray-400 uppercase text-xs tracking-wider">
+                        <tr>
+                            <th class="px-6 py-4">Producto</th>
+                            <th class="px-6 py-4">Categoría</th>
+                            <th class="px-6 py-4 text-right">Stock Disponible</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-charcoal-700" id="tabla-stock">
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- PESTAÑA: PEDIDOS WEB -->
+        <section id="vista-pedidosweb" class="block">
+            <h2 class="font-serif text-3xl text-white mb-6">Pedidos Online Entrantes</h2>
+            <div id="grid-pedidosweb" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Tarjetas generadas por JS -->
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        function cambiarPestana(pestana) {
+            document.getElementById('vista-pedidosweb').classList.add('hidden');
+            document.getElementById('vista-inventario').classList.add('hidden');
+            
+            document.getElementById('btn-pedidosweb').className = "w-full flex items-center gap-3 px-4 py-3 text-sm tracking-wide text-gray-400 hover:text-white hover:bg-charcoal-700 rounded-sm transition relative";
+            document.getElementById('btn-inventario').className = "w-full flex items-center gap-3 px-4 py-3 text-sm tracking-wide text-gray-400 hover:text-white hover:bg-charcoal-700 rounded-sm transition";
+            
+            document.getElementById(`vista-${pestana}`).classList.remove('hidden');
+            document.getElementById(`btn-${pestana}`).className = "w-full flex items-center gap-3 px-4 py-3 text-sm tracking-wide bg-gold text-charcoal-900 font-bold rounded-sm transition relative";
+        }
+
+        function cerrarSesion() {
+            localStorage.removeItem('usuarioLogueado');
+            window.location.href = 'login.html';
+        }
+
+        let licoresGlobales = []; // Guarda los productos en memoria
+
+        async function cargarDatos() {
+            try {
+                const res = await fetch('http://localhost:3000/api/licores');
+                const licores = await res.json();
+                
+                // Llenar tabla de inventario (ya no llenamos el grid del POS)
+                const tabla = document.getElementById('tabla-stock');
+                tabla.innerHTML = '';
+                licores.forEach(p => {
+                    tabla.innerHTML += `
+                        <tr class="hover:bg-charcoal-700/30 transition">
+                            <td class="px-6 py-4 text-white">${p.Nombre}</td>
+                            <td class="px-6 py-4 text-gold text-xs uppercase">${p.Categoria}</td>
+                            <td class="px-6 py-4 text-right font-bold ${p.Stock < 5 ? 'text-red-500' : 'text-green-500'}">${p.Stock} un.</td>
+                        </tr>
+                    `;
+                });
+            } catch (err) {
+                console.error("Error cargando inventario:", err);
+            }
+        }
+
+        // Función independiente para pintar las tarjetas
+        function renderizarPOS(licores) {
+            const posGrid = document.getElementById('pos-productos');
+            
+            if (licores.length === 0) {
+                posGrid.innerHTML = '<p class="text-gray-400 text-center py-10">No se encontraron productos.</p>';
+                return;
+            }
+
+            let html = '<div class="grid grid-cols-2 lg:grid-cols-3 gap-4" id="grid-items">';
+            licores.forEach(p => {
+                html += `
+                    <div class="bg-charcoal-900 border border-charcoal-700 p-3 rounded-sm hover:border-gold cursor-pointer transition text-center" onclick="agregarAlCarrito(${p.IdLicor})">
+                        <h4 class="text-sm text-white mb-2 line-clamp-1">${p.Nombre}</h4>
+                        <p class="font-serif text-lg text-white">$${parseFloat(p.Precio).toFixed(2)}</p>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            posGrid.innerHTML = html;
+        }
+
+        // Lógica del buscador en tiempo real
+        document.getElementById('buscador-pos').addEventListener('input', (e) => {
+            const textoBuscado = e.target.value.toLowerCase();
+            // Filtra ignorando mayúsculas y minúsculas
+            const filtrados = licoresGlobales.filter(p => p.Nombre.toLowerCase().includes(textoBuscado));
+            renderizarPOS(filtrados);
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarDatos();
+            cargarPedidosWeb();
+        });
+
+        let carrito = [];
+
+        function agregarAlCarrito(id) {
+            const producto = licoresGlobales.find(p => p.IdLicor === id);
+            if (!producto) return;
+    
+            const item = carrito.find(i => i.IdLicor === id);
+            if (item) {
+                if (item.cantidad < producto.Stock) item.cantidad++;
+                else alert('Stock máximo alcanzado para este producto.');
+            } else {
+                if (producto.Stock > 0) carrito.push({ ...producto, cantidad: 1 });
+                else alert('Producto sin stock.');
+            }
+            renderizarCarrito();
+        }
+
+        function removerDelCarrito(id) {
+            const index = carrito.findIndex(i => i.IdLicor === id);
+            if (index > -1) {
+                if (carrito[index].cantidad > 1) carrito[index].cantidad--;
+                else carrito.splice(index, 1);
+            }
+            renderizarCarrito();
+        }
+
+    
+        function renderizarCarrito() {
+            const contenedor = document.getElementById('carrito-items');
+            const totalEtiq = document.getElementById('carrito-total');
+    
+            if (carrito.length === 0) {
+                contenedor.innerHTML = '<p class="text-xs text-gray-500 text-center mt-10">El carrito está vacío</p>';
+                totalEtiq.innerText = '$0.00';
+                return;
+            }
+
+            let html = '';
+            let total = 0;
+            
+            carrito.forEach(item => {
+                const subtotal = item.Precio * item.cantidad;
+                total += subtotal;
+                html += `
+                    <div class="flex justify-between items-center bg-charcoal-900 p-2 rounded-sm border border-charcoal-700">
+                        <div class="flex-1">
+                            <p class="text-white text-sm line-clamp-1">${item.Nombre}</p>
+                            <p class="text-gold text-xs">$${parseFloat(item.Precio).toFixed(2)} x ${item.cantidad}</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-white font-bold text-sm">$${subtotal.toFixed(2)}</span>
+                            <div class="flex gap-1">
+                                <button onclick="removerDelCarrito(${item.IdLicor})" class="text-red-500 hover:text-red-400"><i class="fas fa-minus-square"></i></button>
+                                <button onclick="agregarAlCarrito(${item.IdLicor})" class="text-green-500 hover:text-green-400"><i class="fas fa-plus-square"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            contenedor.innerHTML = html;
+            totalEtiq.innerText = '$' + total.toFixed(2);
+        }
+
+        function cancelarPedido() {
+            if (carrito.length === 0) return alert('El carrito ya está vacío.');
+            
+            const motivo = prompt('Especifica el motivo de la cancelación (ej. Cliente se arrepintió, falta de fondos):');
+            if (motivo !== null) {
+                if (motivo.trim() === '') return alert('Debes ingresar un motivo válido.');
+                
+                console.log(`Venta cancelada. Motivo: ${motivo}`);
+                carrito = [];
+                renderizarCarrito();
+            }
+        }
+
+        async function procesarVenta() {
+            if (carrito.length === 0) return alert('Agrega productos antes de procesar la venta.');
+            
+            const totalVenta = carrito.reduce((sum, item) => sum + (item.Precio * item.cantidad), 0);
+            const usuarioSesion = JSON.parse(sessionStorage.getItem('usuarioLogueado'));
+
+            try {
+                const respuesta = await fetch('http://localhost:3000/api/ventas', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        total: totalVenta, 
+                        idUsuario: usuarioSesion.ID_Usuario || usuarioSesion.IdUsuario,
+                        carrito: carrito // Enviamos el detalle de los productos
+                    })
+                });
+
+                if (respuesta.ok) {
+                    alert('¡Venta procesada con éxito!');
+                    carrito = []; // Limpiamos el carrito
+                    renderizarCarrito(); // Limpiamos la vista del ticket
+                    cargarDatos(); // Refrescamos el inventario en tiempo real
+                } else {
+                    alert('Error al registrar la venta en el servidor.');
+                }
+            } catch (error) {
+                console.error('Error de conexión:', error);
+            }
+        }
+
+        async function cargarPedidosWeb() {
+            try {
+                const res = await fetch('http://localhost:3000/api/trabajador/pedidos');
+                const pedidos = await res.json();
+                const contenedor = document.getElementById('grid-pedidosweb');
+                
+                if (pedidos.length === 0) {
+                    contenedor.innerHTML = '<p class="text-gray-400">No hay pedidos online pendientes de armar.</p>';
+                    return;
+                }
+
+                let html = '';
+                pedidos.forEach(p => {
+                    // Armar la lista de productos HTML
+                    let listaProductos = '';
+                    if (p.Detalles && p.Detalles.length > 0) {
+                        p.Detalles.forEach(item => {
+                            listaProductos += `<li class="flex justify-between text-sm text-gray-300 border-b border-charcoal-700 pb-1 mb-1 last:border-0 last:pb-0 last:mb-0">
+                                <span>${item.Nombre}</span>
+                                <span class="text-gold font-bold">x${item.Cantidad}</span>
+                            </li>`;
+                        });
+                    } else {
+                        listaProductos = `<li class="text-sm text-gray-500">Detalles no disponibles</li>`;
+                    }
+
+                    html += `
+                        <div class="bg-charcoal-800 border border-charcoal-700 p-6 rounded-sm flex flex-col h-full">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 class="text-white font-bold text-lg">Orden #${p.IdPedido}</h3>
+                                    <p class="text-sm text-gray-400"><i class="fas fa-user text-gold mr-1"></i> ${p.Cliente}</p>
+                                </div>
+                                <span class="text-gold font-bold text-xl">$${parseFloat(p.Total).toFixed(2)}</span>
+                            </div>
+                            
+                            <!-- Lista de Empaque -->
+                            <div class="bg-charcoal-900 p-3 rounded-sm border border-charcoal-700 mb-4 flex-1">
+                                <h4 class="text-xs uppercase text-gray-500 mb-2 font-bold tracking-wider">Lista de empaque:</h4>
+                                <ul>
+                                    ${listaProductos}
+                                </ul>
+                            </div>
+
+                            <p class="text-xs uppercase tracking-wider text-yellow-500 mb-4 animate-pulse"><i class="fas fa-box-open"></i> Pendiente de empaque</p>
+                            <button onclick="marcarPedidoListo(${p.IdPedido})" class="w-full mt-auto bg-charcoal-900 border border-gold text-gold hover:bg-gold hover:text-charcoal-900 font-bold uppercase tracking-wider text-xs py-3 rounded-sm transition">
+                                Marcar Listo para Repartidor
+                            </button>
+                        </div>
+                    `;
+                });
+                contenedor.innerHTML = html;
+            } catch (err) { console.error(err); }
+        }
+
+        async function marcarPedidoListo(idPedido) {
+            const usuarioSesion = JSON.parse(sessionStorage.getItem('usuarioLogueado'));
+            const idTrabajador = usuarioSesion.ID_Usuario || usuarioSesion.IdUsuario;
+
+            try {
+                const respuesta = await fetch(`http://localhost:3000/api/trabajador/pedido/${idPedido}`, { 
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ idTrabajador: idTrabajador })
+                });
+                
+                if (respuesta.ok) {
+                    alert('Pedido empacado y registrado en el historial de ventas.');
+                    cargarPedidosWeb(); // Refrescar la vista para quitar el pedido de la lista
+                } else {
+                    alert('Hubo un error al procesar el pedido.');
+                }
+            } catch (err) {
+                console.error('Error al actualizar:', err);
+            }
+        }
+
+        // Llama a cargarPedidosWeb() periódicamente para que el trabajador reciba notificaciones en tiempo real
+        setInterval(() => {
+            if(!document.getElementById('vista-pedidosweb').classList.contains('hidden')) {
+                cargarPedidosWeb();
+            }
+        }, 5000);
+
+    </script>
+</body>
+</html>

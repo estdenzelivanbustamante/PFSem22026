@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro | Licorería Don Charles</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: { DEFAULT: '#C5A059', light: '#DFBD78', dark: '#8C6F36' },
+                        charcoal: { 900: '#111111', 800: '#1A1A1A', 700: '#2A2A2A' }
+                    },
+                    fontFamily: {
+                        serif: ['"Playfair Display"', 'serif'],
+                        sans: ['Lato', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .hero-bg {
+            background-image: linear-gradient(to bottom, rgba(17, 17, 17, 0.7), rgba(17, 17, 17, 1)), url('https://images.unsplash.com/photo-1569529465841-dfecdab7503b?q=80&w=2000&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .toast-enter { animation: slideUp 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="bg-charcoal-900 text-gray-300 font-sans antialiased selection:bg-gold selection:text-charcoal-900 flex flex-col min-h-screen">
+
+    <!-- Navbar Minimalista -->
+    <nav class="absolute w-full z-50 border-b border-charcoal-700/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <a href="index.html" class="text-gray-400 hover:text-gold transition flex items-center gap-2 text-sm uppercase tracking-wider">
+                    <i class="fas fa-arrow-left"></i> Volver al Inicio
+                </a>
+                <a href="index.html" class="font-serif text-xl tracking-widest text-white uppercase flex flex-col items-center">
+                    Don Charles
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenido Principal -->
+    <main class="flex-grow hero-bg flex items-center justify-center px-4 pt-20 pb-12">
+        <div class="bg-charcoal-800/90 backdrop-blur-md border border-charcoal-700 p-8 md:p-12 rounded-sm shadow-2xl w-full max-w-md animate-[slideUp_0.8s_ease-out_forwards]">
+            
+            <div class="text-center mb-8">
+                <h1 class="font-serif text-3xl text-white mb-2">Únete al Club</h1>
+                <p class="text-gray-400 text-sm font-light">Crea tu cuenta para acceder a compras exclusivas.</p>
+            </div>
+
+            <form id="form-registro" class="space-y-6">
+                <div>
+                    <label for="correo" class="block text-xs uppercase tracking-wider text-gray-400 mb-2">Correo Electrónico</label>
+                    <input type="email" id="correo" required
+                        class="w-full bg-charcoal-900 border border-charcoal-700 text-white px-4 py-3 rounded-sm focus:outline-none focus:border-gold transition duration-300 placeholder-gray-600"
+                        placeholder="tu@email.com">
+                </div>
+
+                <div>
+                    <label for="password" class="block text-xs uppercase tracking-wider text-gray-400 mb-2">Contraseña</label>
+                    <input type="password" id="password" required minlength="6"
+                        class="w-full bg-charcoal-900 border border-charcoal-700 text-white px-4 py-3 rounded-sm focus:outline-none focus:border-gold transition duration-300 placeholder-gray-600"
+                        placeholder="••••••••">
+                </div>
+
+                <button type="submit" id="btn-submit"
+                    class="w-full bg-gold hover:bg-gold-light text-charcoal-900 py-3.5 text-sm uppercase tracking-wider transition duration-300 font-bold rounded-sm mt-4">
+                    Crear Cuenta
+                </button>
+            </form>
+
+            <div class="mt-8 text-center border-t border-charcoal-700 pt-6">
+                <p class="text-sm text-gray-400">
+                    ¿Ya tienes una cuenta? 
+                    <a href="login.html" class="text-gold hover:text-white transition ml-1 border-b border-transparent hover:border-white">Inicia sesión aquí</a>
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Contenedor para Notificaciones -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2"></div>
+
+    <script>
+        const form = document.getElementById('form-registro');
+        const btnSubmit = document.getElementById('btn-submit');
+        const toastContainer = document.getElementById('toast-container');
+
+        function showToast(message, isError = false) {
+            const toast = document.createElement('div');
+            const icon = isError ? 'fa-exclamation-circle text-red-500' : 'fa-check-circle text-gold';
+            const borderColor = isError ? 'border-red-900' : 'border-gold';
+            
+            toast.className = `bg-charcoal-800 border ${borderColor} text-white px-6 py-4 shadow-lg rounded-sm flex items-center gap-3 toast-enter max-w-sm`;
+            toast.innerHTML = `
+                <i class="fas ${icon}"></i>
+                <p class="text-sm font-light">${message}</p>
+            `;
+            toastContainer.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(100%)';
+                toast.style.transition = 'all 0.3s ease-in';
+                setTimeout(() => { if (toastContainer.contains(toast)) toastContainer.removeChild(toast); }, 300);
+            }, 4000);
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault(); // Evita que la página se recargue
+            
+            const correo = document.getElementById('correo').value;
+            const password = document.getElementById('password').value;
+
+            // Cambiar el botón a estado de carga
+            btnSubmit.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Registrando...';
+            btnSubmit.disabled = true;
+
+            try {
+                // Enviar datos al backend (Node.js)
+                const respuesta = await fetch('http://localhost:3000/api/registro', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ correo, password })
+                });
+
+                const data = await respuesta.json();
+
+                if (respuesta.ok) {
+                    showToast('¡Cuenta creada con éxito! Redirigiendo...');
+                    // Limpiar el formulario
+                    form.reset();
+                    // Opcional: redirigir al login después de 2 segundos
+                    setTimeout(() => { window.location.href = 'login.html'; }, 2000);
+                } else {
+                    showToast(data.mensaje || 'Error al registrar usuario', true);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Error de conexión con el servidor.', true);
+            } finally {
+                // Restaurar el botón
+                btnSubmit.innerHTML = 'Crear Cuenta';
+                btnSubmit.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
