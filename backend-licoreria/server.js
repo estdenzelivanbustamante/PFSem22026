@@ -9,7 +9,7 @@ app.use(express.json());
 // Configuración de tu base de datos SQL Server
 const dbConfig = {
     user: 'denzel',      
-    password: 'caza putas 42', 
+    password: 'Cazaputas42', 
     server: 'localhost',     
     database: 'LicoreriaDonCharles',
     options: {
@@ -177,29 +177,26 @@ app.delete('/api/admin/usuarios/:id', async (req, res) => {
 // ==========================================
 // AUTENTICACIÓN (LOGIN Y REGISTRO)
 // ==========================================
+// Ruta para registrar un nuevo cliente
 app.post('/api/registro', async (req, res) => {
-    const { correo, password } = req.body;
-    try {
-        let pool = await sql.connect(dbConfig);
-        
-        let checkUser = await pool.request()
-            .input('correo', sql.NVarChar, correo)
-            .query('SELECT Correo FROM Usuarios WHERE Correo = @correo');
-            
-        if (checkUser.recordset.length > 0) {
-            return res.status(400).json({ mensaje: 'Este correo ya está registrado.' });
-        }
+    // Ahora extraemos también la dirección del cuerpo de la petición
+    const { correo, password, direccion } = req.body; 
 
+    try {
+        const pool = await sql.connect(dbConfig);
         await pool.request()
-    .input('correo', sql.NVarChar, correo)
-    .input('contrasena', sql.NVarChar, password)
-    .query(`INSERT INTO Usuarios (Correo, Contrasena, ID_Rol, Fecha_Creacion) 
-        VALUES (@correo, @contrasena, 5, GETDATE()) `);
-            
-        res.status(201).json({ mensaje: 'Usuario registrado correctamente' });
-    } catch (err) {
-        console.error("Error en el registro:", err);
-        res.status(500).json({ mensaje: 'Error al registrar en la base de datos' });
+            .input('correo', sql.NVarChar, correo)
+            .input('contrasena', sql.NVarChar, password)
+            .input('direccion', sql.NVarChar, direccion)
+            // ID_Rol = 5 corresponde al Cliente
+            .query(`
+                INSERT INTO Usuarios (Correo, Contrasena, ID_Rol, Direccion) 
+                VALUES (@correo, @contrasena, 5, @direccion)
+            `);
+        res.status(201).json({ message: 'Usuario registrado exitosamente' });
+    } catch (error) {
+        console.error('Error en el registro:', error);
+        res.status(500).json({ error: 'Error al registrar el usuario' });
     }
 });
 
@@ -429,6 +426,96 @@ app.get('/api/delivery/disponibles', async (req, res) => {
         res.json(result.recordset);
     } catch (err) {
         res.status(500).json({ mensaje: 'Error al obtener pedidos' });
+    }
+});
+
+// ==========================================
+// RUTAS PARA EL PANEL DE DELIVERY (REPARTIDOR)
+// ==========================================
+
+// 1. Obtener los pedidos relevantes para el delivery
+app.get('/api/pedidos/delivery', async (req, res) => {
+    try {
+        const pool = await sql.connect(dbConfig);
+        const result = await pool.request().query(`
+            SELECT IdPedido, ID_Cliente, Total, Estado, ID_Delivery 
+            FROM Pedidos 
+            WHERE Estado = 'Esperando repartidor' OR Estado = 'En camino'
+        `);
+        res.json(result.recordset);
+    } catch (error) {
+        console.error('Error al obtener pedidos de delivery:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// 2. Aceptar un pedido (Asigna el ID del delivery y lo pone 'En camino')
+app.put('/api/pedidos/:id/aceptar', async (req, res) => {
+    const { id } = req.params;
+    const { idDelivery } = req.body;
+
+    try {
+        const pool = await sql.connect(dbConfig);
+        await pool.request()
+            .input('idPedido', sql.Int, id)
+            .input('idDelivery', sql.Int, idDelivery)
+            .query(`
+                UPDATE Pedidos 
+                SET ID_Delivery = @idDelivery, Estado = 'En camino' 
+                WHERE IdPedido = @idPedido
+            `);
+        res.json({ message: 'Pedido asignado y en camino' });
+    } catch (error) {
+        console.error('Error al aceptar el pedido:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// 3. Cambiar el estado general de un pedido (Ej: 'Entregado' o 'Cancelado')
+app.put('/api/pedidos/:id/estado', async (req, res) => {
+    const { id } = req.params;
+    const { estado } = req.body;
+
+    try {
+        const pool = await sql.connect(dbConfig);
+        await pool.request()
+            .input('idPedido', sql.Int, id)
+            .input('estado', sql.NVarChar, estado)
+            .query(`
+                UPDATE Pedidos 
+                SET Estado = @estado 
+                WHERE IdPedido = @idPedido
+            `);
+        res.json({ message: `Pedido actualizado a: ${estado}` });
+    } catch (error) {
+        console.error('Error al actualizar el estado:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Obtener los detalles de un pedido específico
+app.get('/api/pedidos/:id/detalles', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const pool = await sql.connect(dbConfig);
+        const result = await pool.request()
+            .input('idPedido', sql.Int, id)
+            .query(`
+                SELECT 
+                    dp.Cantidad, 
+                    dp.PrecioUnitario, 
+                    l.Nombre AS Producto,
+                    u.Correo AS ClienteCorreo
+                FROM DetallePedidos dp
+                INNER JOIN Licores l ON dp.IdLicor = l.IdLicor
+                INNER JOIN Pedidos p ON dp.IdPedido = p.IdPedido
+                INNER JOIN Usuarios u ON p.ID_Cliente = u.ID_Usuario
+                WHERE dp.IdPedido = @idPedido
+            `);
+        res.json(result.recordset);
+    } catch (error) {
+        console.error('Error al obtener detalles del pedido:', error);
+        res.status(500).json({ error: 'Error al obtener detalles' });
     }
 });
 

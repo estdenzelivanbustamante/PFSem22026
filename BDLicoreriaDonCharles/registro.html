@@ -80,6 +80,18 @@
                         placeholder="••••••••">
                 </div>
 
+                <div class="mb-4">
+                    <label for="direccion" class="block text-gray-400 text-sm font-bold mb-2">
+                        Dirección de Envío
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-map-marker-alt text-gray-500"></i>
+                        </div>
+                        <input type="text" id="direccion" class="w-full pl-10 pr-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-yellow-500 transition" placeholder="Ej. Av. Blanco Galindo Km 7, Colcapirhua" required>
+                    </div>
+                </div>
+
                 <button type="submit" id="btn-submit"
                     class="w-full bg-gold hover:bg-gold-light text-charcoal-900 py-3.5 text-sm uppercase tracking-wider transition duration-300 font-bold rounded-sm mt-4">
                     Crear Cuenta
@@ -124,9 +136,11 @@
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault(); // Evita que la página se recargue
-            
+
             const correo = document.getElementById('correo').value;
             const password = document.getElementById('password').value;
+            // 1. AÑADIR ESTA LÍNEA AQUÍ
+            const direccion = document.getElementById('direccion').value; 
 
             // Cambiar el botón a estado de carga
             btnSubmit.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Registrando...';
@@ -137,7 +151,8 @@
                 const respuesta = await fetch('http://localhost:3000/api/registro', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ correo, password })
+                    // 2. MODIFICAR ESTA LÍNEA PARA INCLUIR LA DIRECCIÓN
+                    body: JSON.stringify({ correo, password, direccion }) 
                 });
 
                 const data = await respuesta.json();

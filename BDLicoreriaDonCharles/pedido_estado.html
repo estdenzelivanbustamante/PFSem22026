@@ -34,14 +34,18 @@
     </div>
 
     <script>
+        // 1. Textos EXACTOS que vienen de tu backend
         const estados = [
             "Alistando su pedido",
             "Esperando repartidor",
-            "Su pedido fue recogido",
-            "Su pedido esta en camino",
-            "Su pedido esta en su locacion"
+            "En camino",
+            "Entregado"
         ];
 
+        // 2. Iconos ajustados a los 4 estados
+        const iconos = ['fa-box-open', 'fa-clock', 'fa-motorcycle', 'fa-map-marker-alt'];
+
+        // ESTA FUNCIÓN SE QUEDA IGUAL A COMO LA TENÍAS
         async function consultarEstado() {
             const idUsuario = usuarioSesion.ID_Usuario || usuarioSesion.IdUsuario;
             try {
@@ -49,7 +53,7 @@
                 if (!res.ok) throw new Error('No se encontró pedido');
                 
                 const pedido = await res.json();
-                document.getElementById('pedido-info').innerText = `Pedido #${pedido.IdPedido} - Total: $${parseFloat(pedido.Total).toFixed(2)}`;
+                document.getElementById('pedido-info').innerText = `Pedido #${pedido.IdPedido} - Total: Bs. ${parseFloat(pedido.Total).toFixed(2)}`;
                 
                 renderizarLineaTiempo(pedido.Estado, pedido.MotivoCancelacion);
             } catch (err) {
@@ -57,10 +61,10 @@
             }
         }
 
+        // ESTA ES LA FUNCIÓN NUEVA CORREGIDA
         function renderizarLineaTiempo(estadoActual, motivo) {
             const container = document.getElementById('estado-container');
             
-            // Estado Cancelado
             if (estadoActual.toLowerCase().includes('cancelado')) {
                 container.className = "mt-4 p-4 bg-red-900/20 border border-red-900 rounded-sm text-center";
                 container.innerHTML = `
@@ -72,13 +76,15 @@
                 return;
             }
 
-            // Flujo Normal
             let html = '';
             let indexActual = estados.indexOf(estadoActual);
-            // Si por alguna razón el texto varía un poco, forzamos al menos el primer paso
-            if (indexActual === -1) indexActual = 0; 
+            
+            if (indexActual === -1) {
+                console.log("Estado no reconocido:", estadoActual);
+                indexActual = 0; 
+            }
 
-            const iconos = ['fa-box-open', 'fa-hand-holding-box', 'fa-motorcycle', 'fa-map-marker-alt'];
+            container.className = "space-y-6 relative pl-4 border-l-2 border-charcoal-700 ml-4";
 
             estados.forEach((est, index) => {
                 const completado = index <= indexActual;
@@ -88,9 +94,12 @@
                 const colorIcono = completado ? 'text-gold' : 'text-charcoal-700';
                 const animacion = actual ? 'animate-pulse' : '';
 
+                let textoAmigable = est;
+                if(est === "En camino") textoAmigable = "Su pedido está en camino";
+                if(est === "Entregado") textoAmigable = "Su pedido ha sido entregado";
+
                 html += `
                     <div class="relative flex items-center gap-4 mb-8 last:mb-0">
-                        <!-- Punto indicador -->
                         <div class="absolute -left-[23px] bg-charcoal-900 rounded-full border-2 ${completado ? 'border-gold' : 'border-charcoal-700'} p-1">
                             <div class="w-2 h-2 rounded-full ${completado ? 'bg-gold' : 'bg-transparent'} ${animacion}"></div>
                         </div>
@@ -100,7 +109,7 @@
                         </div>
                         
                         <div>
-                            <p class="${colorTexto} text-sm uppercase tracking-wider">${est}</p>
+                            <p class="${colorTexto} text-sm uppercase tracking-wider">${textoAmigable}</p>
                         </div>
                     </div>
                 `;
